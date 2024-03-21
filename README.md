@@ -20,11 +20,11 @@ This Operating System is in development using the EFI as the boot loader.
 Using GCC 13.2 from this link.  
 https://nuwen.net/mingw.html  
   
-*NOTE* : Do to the folks who cause more problems then it's worth, I am showing my OFFICIAL youtube channel here.  
-  
+*NOTE* : Do to the folks who like to cause problems for other youtubers, I am showing my OFFICIAL youtube channel here. Do NOT trust the scammers who pretend to be me !  
 https://www.youtube.com/@ThatOSDev/videos  
-
-
+  
+  
+The blow list is for EFI environment at this time. Kernel dev will have some of this done already implemented by the time I show the actual kernel LCARS GUI world.  
 # ** IMPLEMENTED **  
 
 	* EFI Text
@@ -32,7 +32,7 @@ https://www.youtube.com/@ThatOSDev/videos
 	* EFI Graphics (GOP)
 	* EFI Rectangle and Line Drawing
 	* EFI Display Screen Resolutions
-	* EFI BMP Image Loading - Displays my own Wallpaper now
+	* EFI Based BMP Image Loading - Displays my own Wallpaper now
 	* EFI RSDP
 	* EFI TPL Timing
 	* EFI Delay - Microseconds
@@ -50,5 +50,7 @@ https://www.youtube.com/@ThatOSDev/videos
 	* Operating System Installation with just the EFI Environment  
 	* Text Editor  
 	* Assembler  
+	* Networking  
+	* Blutooth  
 
 ![Current Progress](progress.png)  
