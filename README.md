@@ -16,7 +16,7 @@ NOTE : Do to the folks who cause more problems then it's worth, I am showing my 
 https://www.youtube.com/@ThatOSDev/videos  
 
 
-** IMPLIMENTED **  
+# ** IMPLEMENTED **  
 
 	* EFI Text
 	* EFI Keyboard
@@ -28,7 +28,7 @@ https://www.youtube.com/@ThatOSDev/videos
 	* EFI Rectangle and Line Drawing
 	* EFI Display Screen Resolutions
 
-** CURRENT TASKS TO ADD**  
+# ** CURRENT TASKS TO ADD**  
 
 	* Mouse & Gesture ( Touch Screen ) support
 	* FONTS !!!!!!!!
