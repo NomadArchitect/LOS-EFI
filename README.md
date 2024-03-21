@@ -33,6 +33,7 @@ https://www.youtube.com/@ThatOSDev/videos
 	* EFI RSDP
 	* EFI TPL Timing
 	* EFI Delay - Microseconds
+	* EFI Based PRINTF with Variadic Functions
 
 # ** CURRENT TASKS TO ADD**  
 
