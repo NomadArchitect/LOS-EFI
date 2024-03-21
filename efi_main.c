@@ -8,8 +8,6 @@
 	AND ALL OF MY YOUTUBE SUBSCRIBERS
 */
 
-//#define BMP_IMPLEMENTATION
-//#include "bmp.h"
 #include "EFI/efilib.h"
 
 unsigned long long strlen(const char* str)
@@ -49,6 +47,7 @@ int64_t CompareGuid(EFI_GUID* Guid1, EFI_GUID* Guid2)
     return RtCompareGuid (Guid1, Guid2);
 }
 
+//  GCC 13.2 is not allowing PUSH to be used here. Not sure why yet.
 /*
 struct GDTEntry
 {

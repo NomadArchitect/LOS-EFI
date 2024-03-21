@@ -46,7 +46,7 @@ EFI_EVENT timer_event;
 
 void Delay(uint64_t d)
 {
-    // The Stall function is set is microseconds.
+    // The Stall function is set as microseconds.
     SystemTable->BootServices->Stall(d);
 }
 
@@ -135,8 +135,7 @@ void printf(char16_t* txt, ...)
 			switch(txt[i])
 			{
                 case u'c': {
-                    // Print CHAR16 value; printf("%c", char)
-                    charStr[0] = va_arg(args, int); // Compiler warning says to do this
+                    charStr[0] = va_arg(args, int);
                     SystemTable->ConOut->OutputString(SystemTable->ConOut, charStr);
 					break;
                 }
@@ -197,13 +196,9 @@ void printf(char16_t* txt, ...)
 
 void HitAnyKey()
 {
-    // This clears the keyboard buffer.
     SystemTable->ConIn->Reset(SystemTable->ConIn, 1);
-
-    // We setup the struct to take keyboard input.
     EFI_INPUT_KEY Key;
 
-    // In a while loop to see if the keyboard has a key stroke in the buffer.
     do
 	{
 		Delay(1);
@@ -248,7 +243,6 @@ void SetPixel(uint32_t xPos, uint32_t yPos, uint32_t mColor)
     gop->Blt(gop, SetGraphicsColor(mColor), EfiBltVideoFill, 0, 0, xPos, yPos, 1, 1, 0);
 }
 
-// NOTE : Call SetGraphicsColor prior to using this function.
 void CreateBufferFilledBox(uint32_t xPos, uint32_t yPos, uint32_t w, uint32_t h, uint32_t Color)
 {
     // This functions puts a color filled box on the screen
@@ -411,7 +405,7 @@ void readFile(uint16_t* FileName)
     // We create the buffer, allocate memory for it, then read
     // the file into the buffer. After which, we close the file.
 	// Currently we are using a fixed size. Eventually we will fix that.
-	// Currently we have a fixed Buffer Handle as well. Eventually we will fixe that.
+	// Currently we have a fixed Buffer Handle as well. Eventually we will fix that.
     EFI_FILE_PROTOCOL* m_FileHandle = openFile(FileName);
     if(m_FileHandle != NULL)
     {
