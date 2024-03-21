@@ -20,13 +20,13 @@ https://www.youtube.com/@ThatOSDev/videos
 
 	* EFI Text
 	* EFI Keyboard
-	* EFI BMP Image Loading - Displays my own Wallpaper now
 	* EFI Graphics (GOP)
+	* EFI Rectangle and Line Drawing
+	* EFI Display Screen Resolutions
+	* EFI BMP Image Loading - Displays my own Wallpaper now
 	* EFI RSDP
 	* TPL Timing
 	* EFI Delay - Microseconds
-	* EFI Rectangle and Line Drawing
-	* EFI Display Screen Resolutions
 
 # ** CURRENT TASKS TO ADD**  
 
@@ -38,5 +38,7 @@ https://www.youtube.com/@ThatOSDev/videos
 	* Writing Raw Sectors to Drive  
 	* Format and Partition drive with the EFI Environment  
 	* Operating System Installation with just the EFI Environment  
+	* Text Editor  
+	* Assembler  
 
 ![Current Progress](progress.png)  
