@@ -1,5 +1,10 @@
 # LOS-EFI
-LCARS Operating System - EFI Bootable for modern computers.  
+# **LCARS - Library Computer Access Retrieval System**  
+  
+LCARS is based on the idea from the TV show Star Trek - Next Generation. Those panels you see on the bridge of the enterprise are known as LCARS displays. Others have attempted to make this, but they made a shell over windows or Linux. Mine is *FROM SCRATCH*, thus not using a linux kernel or anything related to MS Windows.  
+  
+*NOTE : I make NO MONEY on this project. YES, I'm talking to you CBS ! So you can't sue me or force a take down !*  
+  
   
 # BIG THANK YOU TO THE FOLLOWING PEOPLE WHO HELPED ME TO MAKE THIS OS POSSIBLE
 	- ANGEL  
@@ -8,9 +13,7 @@ LCARS Operating System - EFI Bootable for modern computers.
 	- STRYKER  
 	- AND ALL OF MY YOUTUBE SUBSCRIBERS  
   
-# **LCARS - Library Computer Access Retrieval System**  
-  
-LCARS is based on the idea from the TV show Star Trek - Next Generation. Those panels you see on the bridge of the enterprise are known as LCARS displays. Others have attempted to make this, but they made a shell over windows or Linux. Mine is *FROM SCRATCH*, thus not using a linux kernel or anything related to MS Windows.  
+
   
 This Operating System is in development using the EFI as the boot loader.  
   
