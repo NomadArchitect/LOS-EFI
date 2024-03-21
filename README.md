@@ -52,5 +52,7 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* Assembler  
 	* Networking  
 	* Blutooth  
+	* Simple Web Browser  
+	* Getting some sort of C compiler into the OS  
 
 ![Current Progress](progress.png)  
