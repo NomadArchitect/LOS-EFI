@@ -16,7 +16,8 @@ NOTE : Do to the folks who cause more problems then it's worth, I am showing my 
 https://www.youtube.com/@ThatOSDev/videos  
 
 
-** IMPLIMENTED **
+** IMPLIMENTED **  
+
 	* EFI Text
 	* EFI Keyboard
 	* EFI BMP Image Loading - Displays my own Wallpaper now
@@ -28,7 +29,9 @@ https://www.youtube.com/@ThatOSDev/videos
 	* EFI Display Screen Resolutions
 
 ** CURRENT TASKS TO ADD**  
+
 	* Mouse & Gesture ( Touch Screen ) support
+	* FONTS !!!!!!!!
 	* MMap
 	* Kernal Dev
 	* Reading Raw Sectors from Drive  
