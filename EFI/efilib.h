@@ -13,6 +13,7 @@
 #define RED    0xffff0000
 #define GREEN  0xff00ff00
 #define BLUE   0xff0000ff
+#define PURPLE 0xff800080
 #define GRAY   0xff888888
 #define WHITE  0xffffffff
 #define BLACK  0xff000000
@@ -578,10 +579,10 @@ void InitEFI(EFI_HANDLE handle, EFI_SYSTEM_TABLE  *table)
 	InitializeFILESYSTEM();
 
 	// Create timer event, to update aliens around once per second
-//	SystemTable->BootServices->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, print_datetime, NULL, &timer_event);
-//
-//	// Set Timer for the timer event to run every 1 second (in 100ns units)
-//    SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
+	SystemTable->BootServices->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, print_datetime, NULL, &timer_event);
+
+	// Set Timer for the timer event to run every 1 second (in 100ns units)
+    SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
 	//	DrawWallpaperBMPImage();
 }
 

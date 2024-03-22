@@ -98,7 +98,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *system)
 
     int32_t result = KernelBinFile(&bi);
 	
-	setTextColor(EFI_YELLOW);
+	setTextColor(EFI_LIGHTMAGENTA);
 	printf(u"\r\n\r\nRETURNED RESULT FROM LOADED FILE : %d\r\n\r\n", result);
 	
 	setTextColor(EFI_BROWN);
