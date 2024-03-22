@@ -24,7 +24,7 @@ https://nuwen.net/mingw.html
 https://www.youtube.com/@ThatOSDev/videos  
   
   
-The blow list is for EFI environment at this time. Kernel dev will have some of this done already implemented by the time I show the actual kernel LCARS GUI world.  
+The blow list is for EFI environment at this time. Kernel dev will have some of this already implemented by the time I work with the actual kernel LCARS GUI world.  
 # ** IMPLEMENTED **  
 
 	* EFI Text
