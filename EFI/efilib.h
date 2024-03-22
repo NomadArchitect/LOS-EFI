@@ -3,6 +3,7 @@
 #define EFI_LIB_H
 
 #include "efi.h"
+#include "clib.h"
 
 #define MAX_LENGTH 22
 
@@ -439,8 +440,30 @@ void freeFileMemory()
     printf(CheckStandardEFIError(Status));
 }
 
-void DrawBMPImage()
+void DrawWallpaperBMPImage()
 {
+    if(gBuffer.ScreenHeight < 700)
+	{
+		DisplayWidth  = 800;
+        DisplayHeight = 450;
+	    readFile(u"EFI\\Boot\\LOS-Wallpaper-450.bmp");
+	} else if((gBuffer.ScreenHeight >= 700) && (gBuffer.ScreenHeight < 800))
+	{
+		DisplayWidth  = 1364;
+        DisplayHeight = 700;
+	    readFile(u"EFI\\Boot\\LOS-Wallpaper-700.bmp");
+	} else if((gBuffer.ScreenHeight >= 800) && (gBuffer.ScreenHeight < 1000))
+	{
+		DisplayWidth  = 1280;
+        DisplayHeight = 800;
+	    readFile(u"EFI\\Boot\\LOS-Wallpaper-800.bmp");
+    } else if(gBuffer.ScreenHeight >= 1000)
+	{
+		DisplayWidth  = 1920;
+        DisplayHeight = 1080;
+	    readFile(u"EFI\\Boot\\LOS-Wallpaper-1080.bmp");
+	}
+
 	EFI_GRAPHICS_OUTPUT_BLT_PIXEL GColor;
 
     GColor.Reserved = 0xFF;
@@ -464,6 +487,10 @@ void DrawBMPImage()
   			gop->Blt(gop, &GColor, EfiBltVideoFill, 0, 0, x, y, 1, 1, 0);
   		}
   	}
+	// This code draws directly to graphics adapter. BAD IDEA.
+	// Would be better to create a BUFFER, draw to it,
+    // THEN copy the buffer to the graphics adapter.
+	freeFileMemory();
 }
 
 void COLD_REBOOT()
@@ -518,46 +545,3 @@ void InitEFI(EFI_HANDLE handle, EFI_SYSTEM_TABLE  *table)
 
 #endif  // EFI_LIB_H
 
-	//printf(u"\r\n");
-
-
-    //uint64_t* tempImage = imageFile;
-	//printf(u"ADDRESS : %s\r\n", &tempImage[8]);
-
-	//SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-	//printf(u"Freeing Pool ... ");
-	//Status = SystemTable->BootServices->FreePool(g);
-    //SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-    //printf(CheckStandardEFIError(Status));
-	//for(int m = 0; m < 5; m++)
-	//{
-	//	uint8_t g = *tempImage;
-	//	printf(u"%x  ", g);
-	//	tempImage++;
-	//}
-
-	//int w, h, bitDepth;
-
-  //  imageFile->SetPosition(imageFile, 8);
-    // (void *Destination, void *Source, uint64_t Length)
-	//fseek(pFile, 8, SEEK_CUR);
-	//fread(&image_data_address, 4, 1, pFile);
-	//fseek(pFile, 4, SEEK_CUR);
-	//fread(w, 4, 1, pFile);
-	//fread(h, 4, 1, pFile);
-	//fseek(pFile, 2, SEEK_CUR);
-	//fread(bitDepth, 2, 1, pFile);
-	//uint8_t g = *tempImage;
-	//uint8_t* tempImage = (uint8_t*)imageFile;
-	//uint8_t g[5];
-	//SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-	//printf(u"AllocatingPool ... ");
-	//EFI_STATUS Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, 5, (void**)&g);
-	//SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-	//printf(CheckStandardEFIError(Status));
-	//
-	//SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-	//printf(u"Copying Memory ... ");
-	//Status = SystemTable->BootServices->CopyMem(g, &tempImage[8], 4);
-	//SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-	//printf(CheckStandardEFIError(Status));
