@@ -25,7 +25,7 @@ https://www.youtube.com/@ThatOSDev/videos
   
   
 The blow list is for EFI environment at this time. Kernel dev will have some of this already implemented by the time I work with the actual kernel LCARS GUI world.  
-# ** IMPLEMENTED **  
+# ** IMPLEMENTED EFI **  
 
 	* EFI Text
 	* EFI Keyboard
@@ -37,16 +37,18 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* EFI TPL Timing
 	* EFI Delay - Microseconds
 	* EFI Based PRINTF with Variadic Functions
-	* GDT Code ready to be used. Previously would not compile. It does now with GCC 13.2  
-
   
+# ** IMPLEMENTED LOADER / KERNEL **  
+	* File Loading and executing with returned result.  
+		* (NOTE : Orange Box on top left indicates the program is running.)  
+	* Graphics  
   
 # ** TO BE ADDED **  
 
+	* GDT Code  
 	* Mouse & Gesture ( Touch Screen ) support
 	* FONTS !!!!!!!!
 	* MMap
-	* Kernal Dev
 	* Reading Raw Sectors from Drive  
 	* Writing Raw Sectors to Drive  
 	* Format and Partition drive with the EFI Environment  
@@ -58,4 +60,5 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* Simple Web Browser  
 	* Getting some sort of C compiler into the OS  
 
-![Current Progress](progress.png)  
+![Current Progress](progress1.png)  
+![Current Progress](progress2.png)  

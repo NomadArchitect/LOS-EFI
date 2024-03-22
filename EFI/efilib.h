@@ -24,7 +24,6 @@ uint64_t                         CurrentColor;
 EFI_GRAPHICS_OUTPUT_PROTOCOL    *gop;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Volume;
 EFI_FILE_PROTOCOL               *RootFS;
-void*    imageFile = NULL;
 
 uint32_t DisplayWidth  = 0;
 uint32_t DisplayHeight = 0;
@@ -401,67 +400,108 @@ EFI_FILE_PROTOCOL* openFile(uint16_t* FileName)
     return FileHandle;
 }
 
-void readFile(uint16_t* FileName)
+void* readFile(uint16_t* FileName, uint64_t* entry)
 {
+	
     // We create the buffer, allocate memory for it, then read
     // the file into the buffer. After which, we close the file.
-	// Currently we are using a fixed size. Eventually we will fix that.
-	// Currently we have a fixed Buffer Handle as well. Eventually we will fix that.
+	void* OS_Buffer = NULL;
     EFI_FILE_PROTOCOL* m_FileHandle = openFile(FileName);
-    if(m_FileHandle != NULL)
-    {
+   // if(m_FileHandle)
+   // {
 		uint64_t FileSize = 0;
 		m_FileHandle->SetPosition(m_FileHandle, 0xFFFFFFFFFFFFFFFFULL);
 		m_FileHandle->GetPosition(m_FileHandle, &FileSize);
 		m_FileHandle->SetPosition(m_FileHandle, 0);
-		
+
         SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
         printf(u"AllocatingPool ... ");
-        EFI_STATUS Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, FileSize, (void**)&imageFile);
+        EFI_STATUS Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, FileSize, (void**)&OS_Buffer);
         SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
         printf(CheckStandardEFIError(Status));
     
         SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
         printf(u"Reading File ... ");
-        Status = m_FileHandle->Read(m_FileHandle, &FileSize, imageFile);
+        Status = m_FileHandle->Read(m_FileHandle, &FileSize, OS_Buffer);
         SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
         printf(CheckStandardEFIError(Status));
 
-        closeFile(m_FileHandle);
-    }
+        if(entry != NULL)
+		{
+			uint8_t* OSloader = (uint8_t*)OS_Buffer;
+		
+			uint8_t p1,p2,p3,p4;
+			p1 = *OSloader;
+			OSloader+=1;
+			p2 = *OSloader;
+			OSloader+=1;
+			p3 = *OSloader;
+			OSloader+=1;
+			p4 = *OSloader;
+
+			if(p1 == 100 && p2 == 134)
+			{
+				printf(u"BINARY - 8664 Signature\r\n");
+
+				OSloader+=37;
+				p1 = *OSloader;
+				OSloader+=1;
+				p2 = *OSloader;
+				OSloader+=1;
+				p3 = *OSloader;
+				OSloader+=1;
+				p4 = *OSloader;
+
+				// 86 64    <---- BIN
+				// 45 4C 46 <---- ELF
+				*entry = (p4 << 24) | (p3 << 16) | (p2 << 8) | p1 ;
+				
+				printf(u"OSloader ENTRY POINT : 0x%x\r\n", *entry);
+			} else {
+				setTextColor(EFI_RED);
+				printf(u"ERROR : Unable to find ENTRY POINT !\r\n");
+				setTextColor(EFI_GREEN);
+			}
+			m_FileHandle->SetPosition(m_FileHandle, *entry);
+			closeFile(m_FileHandle);
+		}
+   // }
+	return OS_Buffer;
 }
 
-void freeFileMemory()
+void freeFileMemory(void* fileHandle)
 {
 	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
 	printf(u"Freeing Pool ... ");
-	EFI_STATUS Status = SystemTable->BootServices->FreePool(imageFile);
+	EFI_STATUS Status = SystemTable->BootServices->FreePool(fileHandle);
     SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
     printf(CheckStandardEFIError(Status));
 }
 
 void DrawWallpaperBMPImage()
 {
+	void* imageFile = NULL;
+//	uint64_t ENTRY_POINT = 0;
     if(gBuffer.ScreenHeight < 700)
 	{
 		DisplayWidth  = 800;
         DisplayHeight = 450;
-	    readFile(u"EFI\\Boot\\LOS-Wallpaper-450.bmp");
+	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-450.bmp", NULL);
 	} else if((gBuffer.ScreenHeight >= 700) && (gBuffer.ScreenHeight < 800))
 	{
 		DisplayWidth  = 1364;
         DisplayHeight = 700;
-	    readFile(u"EFI\\Boot\\LOS-Wallpaper-700.bmp");
+	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-700.bmp", NULL);
 	} else if((gBuffer.ScreenHeight >= 800) && (gBuffer.ScreenHeight < 1000))
 	{
 		DisplayWidth  = 1280;
         DisplayHeight = 800;
-	    readFile(u"EFI\\Boot\\LOS-Wallpaper-800.bmp");
+	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-800.bmp", NULL);
     } else if(gBuffer.ScreenHeight >= 1000)
 	{
 		DisplayWidth  = 1920;
         DisplayHeight = 1080;
-	    readFile(u"EFI\\Boot\\LOS-Wallpaper-1080.bmp");
+	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-1080.bmp", NULL);
 	}
 
 	EFI_GRAPHICS_OUTPUT_BLT_PIXEL GColor;
@@ -490,7 +530,7 @@ void DrawWallpaperBMPImage()
 	// This code draws directly to graphics adapter. BAD IDEA.
 	// Would be better to create a BUFFER, draw to it,
     // THEN copy the buffer to the graphics adapter.
-	freeFileMemory();
+	freeFileMemory(imageFile);
 }
 
 void COLD_REBOOT()
@@ -533,14 +573,16 @@ void InitEFI(EFI_HANDLE handle, EFI_SYSTEM_TABLE  *table)
 	SystemTable->BootServices->SetWatchdogTimer(0, 0x10000, 0, NULL);
 
 	InitializeGOP();
+	printf(u"Current Screen Resolution : %dx%d\r\n\r\n", gBuffer.ScreenWidth, gBuffer.ScreenHeight);
 
 	InitializeFILESYSTEM();
 
 	// Create timer event, to update aliens around once per second
-	SystemTable->BootServices->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, print_datetime, NULL, &timer_event);
-
-	// Set Timer for the timer event to run every 1 second (in 100ns units)
-    SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
+//	SystemTable->BootServices->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, print_datetime, NULL, &timer_event);
+//
+//	// Set Timer for the timer event to run every 1 second (in 100ns units)
+//    SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
+	//	DrawWallpaperBMPImage();
 }
 
 #endif  // EFI_LIB_H
