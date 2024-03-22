@@ -69,14 +69,14 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *system)
     // Memory Map
     uint64_t                MemoryMapSize = 0;
     EFI_MEMORY_DESCRIPTOR  *MemoryMap = NULL;
-//    uint64_t                MapKey = 0;
+    uint64_t                MapKey = 0;
     uint64_t                DescriptorSize = 0;
-//    uint32_t                DescriptorVersion = 0;
+    uint32_t                DescriptorVersion = 0;
 
-//	SystemTable->BootServices->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
-//	MemoryMapSize += 2 * DescriptorSize;
-//	SystemTable->BootServices->AllocatePool(2, MemoryMapSize, (void **)&MemoryMap);
-//	SystemTable->BootServices->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+	SystemTable->BootServices->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+	MemoryMapSize += 2 * DescriptorSize;
+	SystemTable->BootServices->AllocatePool(2, MemoryMapSize, (void **)&MemoryMap);
+	SystemTable->BootServices->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
 
     bi.BaseAddress        = gBuffer.BaseAddress;
     bi.BufferSize         = gBuffer.BufferSize;
@@ -88,23 +88,24 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *system)
 	bi.MMapDescriptorSize = DescriptorSize;
 	bi.rsdp               = tempRSDP;
 
-    int32_t (*KernelBinFile)(BLOCKINFO*) = ((__attribute__((ms_abi)) int32_t (*)(BLOCKINFO*)) &OSloader[ENTRY_POINT]);
+    void (*KernelBinFile)(BLOCKINFO*) = ((__attribute__((ms_abi)) void (*)(BLOCKINFO*)) &OSloader[ENTRY_POINT]);
 
-//    SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
+    SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
 	
-//	gdt_init();
+	gdt_init();
 
-    int32_t result = KernelBinFile(&bi);
+
+    KernelBinFile(&bi);
 	
-	setTextColor(EFI_LIGHTMAGENTA);
-	printf(u"\r\n\r\nRETURNED RESULT FROM LOADED FILE : %d\r\n\r\n", result);
-	
-	setTextColor(EFI_BROWN);
-	printf(u"Hit any key to shut down computer.");
-	
-	HitAnyKey();
 	SHUTDOWN();
 
     return ERROR_STATUS;
 }
 
+//    int32_t (*KernelBinFile)(BLOCKINFO*) = ((__attribute__((ms_abi)) int32_t (*)(BLOCKINFO*)) &OSloader[ENTRY_POINT]);
+//   int32_t result = KernelBinFile(&bi);
+//	setTextColor(EFI_LIGHTMAGENTA);
+//	printf(u"\r\n\r\nRETURNED RESULT FROM LOADED FILE : %d\r\n\r\n", result);
+	
+//	setTextColor(EFI_BROWN);
+//	printf(u"Hit any key to shut down computer.");

@@ -25,6 +25,8 @@ https://nuwen.net/mingw.html
 https://www.youtube.com/@ThatOSDev/videos  
   
   
+*NOTE 2*: It seems that VMs need an OFFSET of 128 when executing the loader / kernel. Where as real hardware does not. So far all testing points this direction. I have it commented out in loader.c when testing on real hardware.  
+
 The blow list is for EFI environment at this time. Kernel dev will have some of this already implemented by the time I work with the actual kernel LCARS GUI world.  
 # ** IMPLEMENTED EFI **  
 
@@ -43,13 +45,16 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* File Loading and executing with returned result.  
 		* (NOTE : Orange Box on top left indicates the program is running.)  
 	* Graphics  
+	* A Basic home-brew FONT so I can test with. (I want to eventually load a TTF.)  
+	* A Basic Print. (NOTE : I will be updating this later to printf using Variadic Functions.)
   
 # ** TO BE ADDED **  
 
 	* GDT Code  
 	* Mouse & Gesture ( Touch Screen ) support
-	* FONTS !!!!!!!!
 	* MMap
+	* FNT - Bitmap Font File
+	* TTF - True Type Font
 	* Reading Raw Sectors from Drive  
 	* Writing Raw Sectors to Drive  
 	* Format and Partition drive with the EFI Environment  
