@@ -28,8 +28,6 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *system)
 {
 	InitEFI(image, system);
 	
-	DrawWallpaperBMPImage();
-
     BLOCKINFO bi;
 
     uint64_t ENTRY_POINT = 0;

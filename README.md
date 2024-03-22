@@ -17,7 +17,8 @@ LCARS is based on the idea from the TV show Star Trek - Next Generation. Those p
   
 This Operating System is in development using the EFI as the boot loader.  
   
-Using GCC 13.2 from this link.  
+*UPDATED : I had to revert back to GCC 11.2 from that link. GCC 13.2 has a bug that would not allow me to compile correctly.*  
+~~Using GCC 13.2 from this link.~~  
 https://nuwen.net/mingw.html  
   
 *NOTE* : Do to the folks who like to cause problems for other youtubers, I am showing my OFFICIAL youtube channel here. Do NOT trust the scammers who pretend to be me !  

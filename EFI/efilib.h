@@ -583,7 +583,8 @@ void InitEFI(EFI_HANDLE handle, EFI_SYSTEM_TABLE  *table)
 
 	// Set Timer for the timer event to run every 1 second (in 100ns units)
     SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
-	//	DrawWallpaperBMPImage();
+
+	DrawWallpaperBMPImage();
 }
 
 #endif  // EFI_LIB_H
