@@ -310,7 +310,7 @@ void print_datetime(EFI_EVENT event, void *Context)
 	int ampm       = 0;
 	int32_t hour   = time.Hour;
 	int32_t minute = time.Minute;
-	if(hour > 12)
+	if(hour > 11)
 	{
 		ampm = 1;
 		hour -= 12;

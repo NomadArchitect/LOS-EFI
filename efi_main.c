@@ -9,7 +9,7 @@
 */
 
 #include "EFI/efilib.h"
-//#include "EFI/gdt.h"
+#include "EFI/gdt.h"
 
 typedef struct BLOCKINFO
 {
