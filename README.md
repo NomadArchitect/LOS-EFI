@@ -37,8 +37,11 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* EFI TPL Timing
 	* EFI Delay - Microseconds
 	* EFI Based PRINTF with Variadic Functions
+	* GDT Code ready to be used. Previously would not compile. It does now with GCC 13.2  
 
-# ** CURRENT TASKS TO ADD**  
+  
+  
+# ** TO BE ADDED **  
 
 	* Mouse & Gesture ( Touch Screen ) support
 	* FONTS !!!!!!!!

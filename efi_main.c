@@ -48,7 +48,7 @@ int64_t CompareGuid(EFI_GUID* Guid1, EFI_GUID* Guid2)
 }
 
 //  GCC 13.2 is not allowing PUSH to be used here. Not sure why yet.
-/*
+
 struct GDTEntry
 {
     uint16_t    limit_low;
@@ -114,7 +114,7 @@ void gdt_init() {
 	
 	__asm__ __volatile__(
         "push %0\n\t"
-        "push $1f\n\t"
+        "push $1\n\t"
         "lretq\n\t"
         "1:\n\t"
         "mov %1, %%ds\n\t"
@@ -126,7 +126,7 @@ void gdt_init() {
         : "memory"
     );
 }
-*/
+
 
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *system)
 {
