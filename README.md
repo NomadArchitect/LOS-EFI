@@ -13,11 +13,10 @@ LCARS is based on the idea from the TV show Star Trek - Next Generation. Those p
 	- STRYKER  
 	- AND ALL OF MY YOUTUBE SUBSCRIBERS  
   
-
-  
 This Operating System is in development using the EFI as the boot loader.  
   
-*UPDATED : I had to revert back to GCC 11.2 from that link. GCC 13.2 has a bug that would not allow me to compile correctly.*  
+*UPDATED : I had to revert back to GCC 11.2 from that link. GCC 13.2 has a bug that would not allow me to compile correctly. The bug is from the binutils 2.40+ error that has been known for years. But I guess nuwen wasn't aware of this. I did email him, but he replied that he is too busy to fix it. I put a copy of 11.2 here on github.*  
+  
 ~~Using GCC 13.2 from this link.~~  
 https://nuwen.net/mingw.html  
   
@@ -25,8 +24,6 @@ https://nuwen.net/mingw.html
 https://www.youtube.com/@ThatOSDev/videos  
   
   
-*NOTE 2*: It seems that VMs need an OFFSET of 128 when executing the loader / kernel. Where as real hardware does not. So far all testing points this direction. I have it commented out in loader.c when testing on real hardware.  
-
 The blow list is for EFI environment at this time. Kernel dev will have some of this already implemented by the time I work with the actual kernel LCARS GUI world.  
 # ** IMPLEMENTED EFI **  
 
@@ -67,4 +64,4 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* Getting some sort of C compiler into the OS  
 
 ![Current Progress](progress1.png)  
-![Current Progress](progress2.png)  
+ 

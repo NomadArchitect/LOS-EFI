@@ -21,7 +21,6 @@
 EFI_HANDLE                       ImageHandle;
 EFI_SYSTEM_TABLE                *SystemTable;
 EFI_STATUS                       ERROR_STATUS;
-uint64_t                         CurrentColor;
 EFI_GRAPHICS_OUTPUT_PROTOCOL    *gop;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Volume;
 EFI_FILE_PROTOCOL               *RootFS;
@@ -29,14 +28,20 @@ EFI_FILE_PROTOCOL               *RootFS;
 uint32_t DisplayWidth  = 0;
 uint32_t DisplayHeight = 0;
 
-struct GRAPHICSBUFFER
+typedef struct BLOCKINFO
 {
-    void*    BaseAddress;
-    uint64_t BufferSize;
-    uint32_t ScreenWidth;
-    uint32_t ScreenHeight;
-    uint32_t PixelsPerScanLine;
-} gBuffer;
+    void*                  BaseAddress;
+    uint64_t               BufferSize;
+    uint32_t               ScreenWidth;
+    uint32_t               ScreenHeight;
+    uint32_t               PixelsPerScanLine;
+	EFI_MEMORY_DESCRIPTOR* MMap;
+	uint64_t               MMapSize;
+	uint64_t               MMapDescriptorSize;
+	uint64_t*              rsdp;
+} __attribute__((__packed__)) BLOCKINFO;
+
+BLOCKINFO biStruct;
 
 typedef struct {
 	uint32_t cols;  // Left / Right
@@ -44,6 +49,24 @@ typedef struct {
 } Timer_Context;
 
 EFI_EVENT timer_event;
+
+// From the GNU-EFI
+int64_t RtCompareGuid(EFI_GUID* Guid1, EFI_GUID* Guid2)
+{
+    int32_t *g1, *g2, r;
+    g1 = (int32_t *) Guid1;
+    g2 = (int32_t *) Guid2;
+    r  = g1[0] - g2[0];
+    r |= g1[1] - g2[1];
+    r |= g1[2] - g2[2];
+    r |= g1[3] - g2[3];
+    return r;
+}
+
+int64_t CompareGuid(EFI_GUID* Guid1, EFI_GUID* Guid2)
+{
+    return RtCompareGuid (Guid1, Guid2);
+}
 
 void Delay(uint64_t d)
 {
@@ -58,8 +81,7 @@ void clearScreen()
 
 void setTextColor(uint64_t color)
 {
-	CurrentColor = color;
-	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, CurrentColor);
+	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, color);
 }
 
 void SetTextPosition(uint32_t Col, uint32_t Row)
@@ -67,7 +89,7 @@ void SetTextPosition(uint32_t Col, uint32_t Row)
     SystemTable->ConOut->SetCursorPosition(SystemTable->ConOut, Col, Row);
 }
 
-void printUInt64Digits(uint64_t num, int base)
+void printUInt64Digits(uint64_t num, uint64_t base)
 {
     char16_t uint64Str[MAX_LENGTH] = {'\0'};
 	
@@ -84,7 +106,7 @@ void printUInt64Digits(uint64_t num, int base)
 	
 	for(uint64_t j = 0; j < i; j++, i--)
 	{
-		uint64_t temp = uint64Str[i];
+		char16_t temp = uint64Str[i];
 		uint64Str[i]  = uint64Str[j];
 		uint64Str[j]  = temp;
 	}
@@ -113,7 +135,7 @@ void printIntDigits(int32_t num)
 	
 	for(uint64_t j = 0; j < i; j++, i--)
 	{
-		uint64_t temp = int32Str[i];
+		char16_t temp = int32Str[i];
 		int32Str[i] = int32Str[j];
 		int32Str[j] = temp;
 	}
@@ -121,7 +143,7 @@ void printIntDigits(int32_t num)
 	SystemTable->ConOut->OutputString(SystemTable->ConOut, int32Str);
 }
 
-void printf(char16_t* txt, ...)
+void wprintf(char16_t* txt, ...)
 {
 	char16_t charStr[2]   = {'\0'};
 
@@ -136,7 +158,7 @@ void printf(char16_t* txt, ...)
 			switch(txt[i])
 			{
                 case u'c': {
-                    charStr[0] = va_arg(args, int);
+                    charStr[0] = (char16_t)va_arg(args, int);
                     SystemTable->ConOut->OutputString(SystemTable->ConOut, charStr);
 					break;
                 }
@@ -181,13 +203,13 @@ void printf(char16_t* txt, ...)
 				    SystemTable->ConOut->OutputString(SystemTable->ConOut, u"\r\nERROR : Invalid format: %");
 					SystemTable->ConOut->OutputString(SystemTable->ConOut, &txt[i]);
 					SystemTable->ConOut->OutputString(SystemTable->ConOut, u"\r\n");
-					SystemTable->ConOut->SetAttribute(SystemTable->ConOut, CurrentColor);
 					return;
 					break;
 				}
 			}
 		} else {
 			charStr[0] = txt[i];
+			charStr[1] = '\0';
 			SystemTable->ConOut->OutputString(SystemTable->ConOut, charStr);
 		}
 	}
@@ -237,99 +259,31 @@ EFI_GRAPHICS_OUTPUT_BLT_PIXEL* SetGraphicsColor(uint32_t color)
     return GColor;
 }
 
-// This positions the pixel in the row and column ( X and Y )
-void SetPixel(uint32_t xPos, uint32_t yPos, uint32_t mColor)
+void MakeRectangle(uint32_t xPos, uint32_t yPos, uint32_t w, uint32_t h, uint32_t c)
 {
-    // TODO : Add in a choice instead of defaulting to EfiBltVideoFill.
-    gop->Blt(gop, SetGraphicsColor(mColor), EfiBltVideoFill, 0, 0, xPos, yPos, 1, 1, 0);
-}
-
-void CreateBufferFilledBox(uint32_t xPos, uint32_t yPos, uint32_t w, uint32_t h, uint32_t Color)
-{
-    // This functions puts a color filled box on the screen
-    uint32_t ByteOffset = 4;
-    if(xPos < 0){xPos = 0;}
-    if(yPos < 0){yPos = 0;}
-    if(w < 1){w = 1;}
-    if(h < 1){h = 1;}
     uint32_t x;
     uint32_t y      = yPos;
-    uint32_t width  = (xPos + w) * ByteOffset;
+    uint32_t width  = xPos + w;
     uint32_t height = yPos + h;
 
     for(y = yPos; y <= height; y++)
     {
-        for(x = xPos * ByteOffset; x <= width; x+=ByteOffset)
+        for(x = xPos; x <= width; x++)
         {
-            *(uint32_t*)(x + (y * gBuffer.PixelsPerScanLine * ByteOffset) + gBuffer.BaseAddress) = *(uint32_t*)&Color;
+            *(x + (y * biStruct.PixelsPerScanLine) + (uint32_t*)(biStruct.BaseAddress)) = c;
         }
     }
 }
 
 void InitializeGOP()
 {
-    // We initialize the Graphics Output Protocol.
-    // This is used instead of the VGA interface.
-	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-    printf(L"\r\n\r\nLoading Graphics Output Protocol ... ");
-    EFI_STATUS Status = SystemTable->BootServices->LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
-    if(Status != EFI_SUCCESS)
-    {
-		SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_RED);
-		printf(CheckStandardEFIError(Status));
-    } else {
-		SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-		printf(CheckStandardEFIError(Status));
-	}
-
-	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, CurrentColor);
+    SystemTable->BootServices->LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
 	
-    gBuffer.BaseAddress        = (void*)gop->Mode->FrameBufferBase;
-    gBuffer.BufferSize         = gop->Mode->FrameBufferSize;
-    gBuffer.ScreenWidth        = gop->Mode->Info->HorizontalResolution;
-    gBuffer.ScreenHeight       = gop->Mode->Info->VerticalResolution;
-    gBuffer.PixelsPerScanLine  = gop->Mode->Info->PixelsPerScanLine;
-}
-
-void print_datetime(EFI_EVENT event, void *Context)
-{
-	(void)event;
-	(void)Context;
-
-    uint32_t save_col = SystemTable->ConOut->Mode->CursorColumn, save_row = SystemTable->ConOut->Mode->CursorRow;
-
-    EFI_TIME time = {0};
-    EFI_TIME_CAPABILITIES capabilities = {0};
-    SystemTable->RuntimeServices->GetTime(&time, &capabilities);
-
-    SetTextPosition(40, 24);
-
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_YELLOW);
-	
-	const uint16_t* ampmArray[2] = {u"AM", u"PM"};
-	int ampm       = 0;
-	int32_t hour   = time.Hour;
-	int32_t minute = time.Minute;
-	if(hour > 11)
-	{
-		ampm = 1;
-		hour -= 12;
-	}
-	if(hour == 0)
-	{
-		hour = 12;
-	}	
-
-    printf(u"%llu/%c%llu/%llu %d:%c%d %s",
-            time.Month,
-            time.Day    < 10 ? '0' : '\0', time.Day,
-			time.Year,
-            hour,
-            minute < 10 ? '0' : '\0', minute,
-            ampmArray[ampm]);
-
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, CurrentColor);
-    SetTextPosition(save_col, save_row);
+    biStruct.BaseAddress        = (void*)gop->Mode->FrameBufferBase;
+    biStruct.BufferSize         = gop->Mode->FrameBufferSize;
+    biStruct.ScreenWidth        = gop->Mode->Info->HorizontalResolution;
+    biStruct.ScreenHeight       = gop->Mode->Info->VerticalResolution;
+    biStruct.PixelsPerScanLine  = gop->Mode->Info->PixelsPerScanLine;
 }
 
 // FILE
@@ -346,16 +300,16 @@ void InitializeFILESYSTEM()
 			{
 				if((Volume->OpenVolume(Volume, &RootFS)) != EFI_SUCCESS)
 				{
-					printf(u"Loading Root File System FAILED!\r\n");
+					wprintf(u"Loading Root File System FAILED!\r\n");
 				}
 			} else {
-		        printf(u"Volume Handle FAILED!\r\n");
+		        wprintf(u"Volume Handle FAILED!\r\n");
 	        }
 		} else {
-		    printf(u"DevicePath FAILED!\r\n");
+		    wprintf(u"DevicePath FAILED!\r\n");
 	    }
 	} else {
-		printf(u"LoadedImage FAILED!\r\n");
+		wprintf(u"LoadedImage FAILED!\r\n");
 	}
 }
 
@@ -370,68 +324,46 @@ uint64_t* GetFileSize (EFI_FILE_PROTOCOL* FileNameHandle)
 
 void closeFile(EFI_FILE_PROTOCOL* FileHandle)
 {
-    // This closes the file.
-    EFI_STATUS Status;
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-    printf(u"Closing File ... ");
-    Status = FileHandle->Close(FileHandle);
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-    printf(CheckStandardEFIError(Status));
+    FileHandle->Close(FileHandle);
 }
 
 EFI_FILE_PROTOCOL* openFile(uint16_t* FileName)
 {
-    // This opens a file from the EFI FAT32 file system volume.
-    // It loads from root, so you must supply full path if the file is not in the root.
-    // Example : "somefolder//myfile"  <--- Notice the double forward slash.
-    EFI_STATUS Status;
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-    printf(u"RootFS ... ");
-    Status = Volume->OpenVolume(Volume, &RootFS);
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-    printf(CheckStandardEFIError(Status));
-    
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-    printf(u"Opening File ... ");
+    Volume->OpenVolume(Volume, &RootFS);
     EFI_FILE_PROTOCOL* FileHandle = NULL;
-    Status = RootFS->Open(RootFS, &FileHandle, FileName, 0x0000000000000001, 0);
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-    printf(CheckStandardEFIError(Status));
+    RootFS->Open(RootFS, &FileHandle, FileName, 0x0000000000000001, 0);
     
     return FileHandle;
 }
 
 void* readFile(uint16_t* FileName, uint64_t* entry)
 {
-	
-    // We create the buffer, allocate memory for it, then read
-    // the file into the buffer. After which, we close the file.
 	void* OS_Buffer = NULL;
     EFI_FILE_PROTOCOL* m_FileHandle = openFile(FileName);
-   // if(m_FileHandle)
-   // {
-		uint64_t FileSize = 0;
-		m_FileHandle->SetPosition(m_FileHandle, 0xFFFFFFFFFFFFFFFFULL);
-		m_FileHandle->GetPosition(m_FileHandle, &FileSize);
-		m_FileHandle->SetPosition(m_FileHandle, 0);
 
-        SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-        printf(u"AllocatingPool ... ");
-        EFI_STATUS Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, FileSize, (void**)&OS_Buffer);
-        SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-        printf(CheckStandardEFIError(Status));
-    
-        SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-        printf(u"Reading File ... ");
-        Status = m_FileHandle->Read(m_FileHandle, &FileSize, OS_Buffer);
-        SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-        printf(CheckStandardEFIError(Status));
+	uint64_t FileSize = 0;
+	m_FileHandle->SetPosition(m_FileHandle, 0xFFFFFFFFFFFFFFFFULL);
+	m_FileHandle->GetPosition(m_FileHandle, &FileSize);
+	m_FileHandle->SetPosition(m_FileHandle, 0);
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, FileSize, (void**)&OS_Buffer);
+	m_FileHandle->Read(m_FileHandle, &FileSize, OS_Buffer);
 
-        if(entry != NULL)
+	if(entry != NULL)
+	{
+		uint8_t* OSloader = (uint8_t*)OS_Buffer;
+	
+		uint8_t p1,p2,p3,p4;
+		p1 = *OSloader;
+		OSloader+=1;
+		p2 = *OSloader;
+		OSloader+=1;
+		p3 = *OSloader;
+		OSloader+=1;
+		p4 = *OSloader;
+
+		if(p1 == 100 && p2 == 134)
 		{
-			uint8_t* OSloader = (uint8_t*)OS_Buffer;
-		
-			uint8_t p1,p2,p3,p4;
+			OSloader+=37;
 			p1 = *OSloader;
 			OSloader+=1;
 			p2 = *OSloader;
@@ -440,70 +372,32 @@ void* readFile(uint16_t* FileName, uint64_t* entry)
 			OSloader+=1;
 			p4 = *OSloader;
 
-			if(p1 == 100 && p2 == 134)
-			{
-				printf(u"BINARY - 8664 Signature\r\n");
-
-				OSloader+=37;
-				p1 = *OSloader;
-				OSloader+=1;
-				p2 = *OSloader;
-				OSloader+=1;
-				p3 = *OSloader;
-				OSloader+=1;
-				p4 = *OSloader;
-
-				// 86 64    <---- BIN
-				// 45 4C 46 <---- ELF
-				*entry = (p4 << 24) | (p3 << 16) | (p2 << 8) | p1 ;
-				
-				printf(u"OSloader ENTRY POINT : 0x%x\r\n", *entry);
-			} else {
-				setTextColor(EFI_RED);
-				printf(u"ERROR : Unable to find ENTRY POINT !\r\n");
-				setTextColor(EFI_GREEN);
-			}
-			m_FileHandle->SetPosition(m_FileHandle, *entry);
-			closeFile(m_FileHandle);
+			// 86 64    <---- BIN
+			// 45 4C 46 <---- ELF
+			*entry = (p4 << 24) | (p3 << 16) | (p2 << 8) | p1;
+		} else {
+			setTextColor(EFI_RED);
+			wprintf(u"ERROR : Unable to find ENTRY POINT !\r\n");
+			setTextColor(EFI_GREEN);
 		}
-   // }
+		m_FileHandle->SetPosition(m_FileHandle, *entry);
+		closeFile(m_FileHandle);
+	}
+
 	return OS_Buffer;
 }
 
 void freeFileMemory(void* fileHandle)
 {
-	SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_BROWN);
-	printf(u"Freeing Pool ... ");
-	EFI_STATUS Status = SystemTable->BootServices->FreePool(fileHandle);
-    SystemTable->ConOut->SetAttribute(SystemTable->ConOut, EFI_CYAN);
-    printf(CheckStandardEFIError(Status));
+	SystemTable->BootServices->FreePool(fileHandle);
 }
 
-void DrawWallpaperBMPImage()
+void DrawLCARSLogoBMPImage()
 {
 	void* imageFile = NULL;
-//	uint64_t ENTRY_POINT = 0;
-    if(gBuffer.ScreenHeight < 700)
-	{
-		DisplayWidth  = 800;
-        DisplayHeight = 450;
-	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-450.bmp", NULL);
-	} else if((gBuffer.ScreenHeight >= 700) && (gBuffer.ScreenHeight < 800))
-	{
-		DisplayWidth  = 1364;
-        DisplayHeight = 700;
-	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-700.bmp", NULL);
-	} else if((gBuffer.ScreenHeight >= 800) && (gBuffer.ScreenHeight < 1000))
-	{
-		DisplayWidth  = 1280;
-        DisplayHeight = 800;
-	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-800.bmp", NULL);
-    } else if(gBuffer.ScreenHeight >= 1000)
-	{
-		DisplayWidth  = 1920;
-        DisplayHeight = 1080;
-	    imageFile = readFile(u"EFI\\Boot\\LOS-Wallpaper-1080.bmp", NULL);
-	}
+    DisplayWidth  = 512;
+    DisplayHeight = 512;
+    imageFile = readFile(u"EFI\\Boot\\loslogo.bmp", NULL);
 
 	EFI_GRAPHICS_OUTPUT_BLT_PIXEL GColor;
 
@@ -528,30 +422,8 @@ void DrawWallpaperBMPImage()
   			gop->Blt(gop, &GColor, EfiBltVideoFill, 0, 0, x, y, 1, 1, 0);
   		}
   	}
-	// This code draws directly to graphics adapter. BAD IDEA.
-	// Would be better to create a BUFFER, draw to it,
-    // THEN copy the buffer to the graphics adapter.
+
 	freeFileMemory(imageFile);
-}
-
-void COLD_REBOOT()
-{
-    // Hardware Reboot
-    SystemTable->RuntimeServices->ResetSystem(EfiResetCold, EFI_SUCCESS, 0, 0);
-}
-
-void WARM_REBOOT()
-{
-    // Software reboot
-    SystemTable->RuntimeServices->ResetSystem(EfiResetWarm, EFI_SUCCESS, 0, 0);
-}
-
-void SHUTDOWN()
-{
-    // Shuts off the computer
-    // NOTE : This does not work in VirtualBox.
-    // WORKS in QEMU !!!
-    SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown, EFI_SUCCESS, 0, 0);
 }
 
 void CPU_HALT()
@@ -571,20 +443,11 @@ void InitEFI(EFI_HANDLE handle, EFI_SYSTEM_TABLE  *table)
 	
 	setTextColor(EFI_GREEN);
 
-	SystemTable->BootServices->SetWatchdogTimer(0, 0x10000, 0, NULL);
-
 	InitializeGOP();
-	printf(u"Current Screen Resolution : %dx%d\r\n\r\n", gBuffer.ScreenWidth, gBuffer.ScreenHeight);
 
 	InitializeFILESYSTEM();
 
-	// Create timer event, to update aliens around once per second
-	SystemTable->BootServices->CreateEvent(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK, print_datetime, NULL, &timer_event);
-
-	// Set Timer for the timer event to run every 1 second (in 100ns units)
-    SystemTable->BootServices->SetTimer(timer_event, TimerPeriodic, 10000000);
-
-	DrawWallpaperBMPImage();
+	DrawLCARSLogoBMPImage();
 }
 
 #endif  // EFI_LIB_H
