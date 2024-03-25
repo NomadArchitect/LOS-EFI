@@ -20,7 +20,15 @@ https://github.com/ThatOSDev/LOS-EFI/tree/master/hold
 ~~Using GCC 13.2 from this link.~~  
 ~~https://nuwen.net/mingw.html~~  
   
-*NOTE* : Do to the folks who like to cause problems for other youtubers, I am showing my OFFICIAL youtube channel here. Do NOT trust the scammers who pretend to be me !  
+*OSFMount*  
+https://www.osforensics.com/tools/mount-disk-images.html  
+  
+*QEMU*  
+https://www.qemu.org/  
+  
+*NOTE 1* : All three of the above programs are in my windows path. You can do a search on how to do that.  
+  
+*NOTE 2* : Do to the folks who like to cause problems for other youtubers, I am showing my OFFICIAL youtube channel here. Do NOT trust the scammers who pretend to be me !  
 https://www.youtube.com/@ThatOSDev/videos  
   
   
