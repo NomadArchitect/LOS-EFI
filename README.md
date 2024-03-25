@@ -32,7 +32,6 @@ https://www.qemu.org/
 https://www.youtube.com/@ThatOSDev/videos  
   
   
-The blow list is for EFI environment at this time. Kernel dev will have some of this already implemented by the time I work with the actual kernel LCARS GUI world.  
 # ** IMPLEMENTED EFI **  
 
 	* EFI Text
