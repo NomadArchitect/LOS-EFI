@@ -37,19 +37,20 @@ The blow list is for EFI environment at this time. Kernel dev will have some of 
 	* EFI TPL Timing
 	* EFI Delay - Microseconds
 	* EFI Based PRINTF with Variadic Functions
+	* EFI File Loading and executing  
   
 # ** IMPLEMENTED LOADER / KERNEL **  
-	* File Loading and executing with returned result.  
-		* (NOTE : Orange Box on top left indicates the program is running.)  
-	* Graphics  
+
+	* Basic Graphics  
 	* A Basic home-brew FONT so I can test with. (I want to eventually load a TTF.)  
 	* A Basic Print. (NOTE : I will be updating this later to printf using Variadic Functions.)
   
 # ** TO BE ADDED **  
 
 	* GDT Code  
+	* MMap  
+	* Paging  
 	* Mouse & Gesture ( Touch Screen ) support
-	* MMap
 	* FNT - Bitmap Font File
 	* TTF - True Type Font
 	* Reading Raw Sectors from Drive  
