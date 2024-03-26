@@ -1,5 +1,7 @@
 
 #include "clib.h"
+#include "mmap.h"
+#include "cr_registers.h"
 
 #define HEX     16
 #define DECIMAL 10
@@ -44,46 +46,90 @@ typedef struct BLOCKINFO
 	uint64_t*              rsdp;
 } __attribute__((__packed__)) BLOCKINFO;
 
+typedef struct TEXTPOSITION
+{
+    uint32_t     x;
+    uint32_t     y;
+} TEXTPOSITION;
+
 void Print(unsigned char str[], const unsigned int a, const unsigned int b, const unsigned int FontSize, unsigned int c);
 void PutCharacter(unsigned int chrNum, const unsigned int a, const unsigned int b, const unsigned int FontSize, unsigned int c);
 void MakeRectangle(unsigned int a, unsigned int b, unsigned int w, unsigned int h, unsigned int c);
-void itoa(unsigned long int n, unsigned long int* buffer, unsigned long int basenumber);
+void InitMMap(BLOCKINFO* block);
 
 BLOCKINFO* biStruct __attribute__ ((section (".text"))) = {0};
+TEXTPOSITION* textPos __attribute__ ((section (".text"))) = {0};
 
 void main(BLOCKINFO* bi)
 {
 	biStruct = bi;
+    textPos->x  = 20;
+    textPos->y  = 10;
+
+	MakeRectangle(1, 1, 512, 512, 0x00000000);
+
+    uint64_t totalRam = GetTotalRam();
 	
-	unsigned char st3[] = "Graphics Memory Address : ";
-	Print(st3, 20, 35, 1, GREEN);
+	textPos->y += 16;
+	textPos->x  = 20;
+
+	uint8_t st2[] = "TOTAL FREE RAM :";
+	Print(st2, textPos->x, textPos->y, 1, 0xFFFF00);
 	
-	unsigned short int pTr2[16] = {'\0'};
-	pTr2[0] = '0';
-	pTr2[1] = 'x';
-	unsigned long int pTr[13] = {'\0'};
-	itoa(*(unsigned long int*)&biStruct->BaseAddress, pTr, HEX);
-	int s = 2;
-	for(int k = 0; k < 11; k++)
+	textPos->x  = 170;
+		
+	uint8_t pTr[1024] = {'\0'};
+	itoa(totalRam, (uint64_t*)pTr, 10);
+	uint8_t* test = (uint8_t*)pTr;
+	int o = 0;
+	while(1)
 	{
-		pTr2[s++] = (unsigned short int)pTr[k];
-	}
-	unsigned char* test = (unsigned char*)pTr2;
-	unsigned int x = 250;
-	for(int u = 1; u < 21; u++)
-	{
-		unsigned char j = *test;
-		Print(&j, x, 35, 1, WHITE);
+		uint8_t j = *test;
+		if(j == '\0')
+		{
+			o++;
+			if(o > 7){break;}
+		} else 
+		{
+			o = 0;
+		}
+		Print(&j, textPos->x, textPos->y, 1, WHITE);
 		test++;
-		x+=4;
+		textPos->x++;
+	};
+	
+	uint8_t testMap = 9; //  00001001 == 9
+	                     //  Result should be Bit 0 and 3
+	
+	init8Bit();
+	bitmap8 = &testMap;
+	
+	uint8_t g0 = GET_8BIT(0);
+	uint8_t g3 = GET_8BIT(3);
+
+	if(g0 == 1)
+	{
+		textPos->y +=16;
+	    textPos->x  = 20;
+		uint8_t st5[] = "Bit 0 = 1";
+		Print(st5, textPos->x, textPos->y, 1, ORANGE);
 	}
+	if(g3 == 1)
+	{
+		textPos->y +=16;
+	    textPos->x  = 20;
+		uint8_t st5[] = "Bit 3 = 1";
+		Print(st5, textPos->x, textPos->y, 1, ORANGE);
+	}
+
+	textPos->y += 16;
+	textPos->x  = 20;
 	
-	unsigned char st[] = "We have dynamic text !!!";
-	Print(st, 20, 50, 2, BADCYAN);
-	
-	unsigned char st2[] = "Welcome to Graphic Text Programming.";
-	Print(st2, 20, 10, 1, ORANGE);
-	
+	// TODO : Paging is next now that BIT manipulation and MMap is done.
+
+    uint8_t st4[] = "End Program";
+	Print(st4, textPos->x, textPos->y, 1, GREEN);
+
 	while(1){__asm__ ("hlt");}
 }
 
@@ -379,3 +425,5 @@ void MakeRectangle(unsigned int a, unsigned int b, unsigned int w, unsigned int 
 }
 
 #include "clib.c"
+#include "mmap.c"
+#include "cr_registers.c"

@@ -51,11 +51,12 @@ https://www.youtube.com/@ThatOSDev/videos
 	* Basic Graphics  
 	* A Basic home-brew FONT so I can test with. (I want to eventually load a TTF.)  
 	* A Basic Print. (NOTE : I will be updating this later to printf using Variadic Functions.)
+	* GDT loaded from BOOTX64.EFI. But seems to be working. Will know more once paging begins.  
+	* MMap seems to be working now. We can total up conventional memory.  
+	* Bitmap manipulation is working.  
   
 # ** TO BE ADDED **  
 
-	* GDT Code  
-	* MMap  
 	* Paging  
 	* Mouse & Gesture ( Touch Screen ) support
 	* FNT - Bitmap Font File

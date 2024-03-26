@@ -20,7 +20,7 @@ int strcmp(const char* a, const char* b)
 	return 0;
 }
 
-void itoa(unsigned long int n, unsigned long int* buffer, unsigned long int basenumber)
+void itoa(uint64_t n, uint64_t* buffer, uint32_t basenumber)
 {
 	unsigned long int hold;
 	int i, j;

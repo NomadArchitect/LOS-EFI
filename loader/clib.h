@@ -16,6 +16,6 @@ typedef uint_least16_t char16_t;
 
 size_t strlen(const char* str);
 int strcmp(const char* a, const char* b);
-void itoa(unsigned long int n, unsigned long int* buffer, unsigned long int basenumber);
+void itoa(uint64_t n, uint64_t* buffer, uint32_t basenumber);
 
 #endif  // C_LIB_H
