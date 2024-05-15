@@ -129,6 +129,9 @@ void main(BLOCKINFO* bi)
 
     uint8_t st4[] = "End Program";
 	Print(st4, textPos->x, textPos->y, 1, GREEN);
+	
+	MakeRectangle(10, 10, 20, 20, 0xFFFF22FF);
+	// If the Purple square shows up it means everything is working so far.
 
 	while(1){__asm__ ("hlt");}
 }
